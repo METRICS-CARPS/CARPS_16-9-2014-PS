@@ -1,0 +1,493 @@
+---
+title: "CARPS Reproducibility Report"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+[PILOT/COPILOT - TEXT IN SQUARE BRACKETS IS HERE FOR GUIDANCE. COPILOT PLEASE DELETE BEFORE KNITTING THE FINAL REPORT]
+
+# Report Details
+
+[PILOT/COPILOT ENTER RELEVANT REPORT DETAILS HERE]
+
+```{r}
+articleID <- "16-9-2014_PS" # insert the article ID code here e.g., "10-3-2015_PS"
+reportType <- 'pilot' # specify whether this is the 'pilot' report or 'final' report
+pilotNames <- "Manuel Bohn" # insert the pilot's name here e.g., "Tom Hardwicke".  If there are multiple cpilots enter both names in a character string e.g., "Tom Hardwicke, Bob Dylan"
+copilotNames <- NA # # insert the co-pilot's name here e.g., "Michael Frank". If there are multiple co-pilots enter both names in a character string e.g., "Tom Hardwicke, Bob Dylan"
+pilotTTC <- 360 # insert the pilot's estimated time to complete (in minutes, fine to approximate) e.g., 120
+copilotTTC <- NA # insert the co-pilot's estimated time to complete (in minutes, fine to approximate) e.g., 120
+pilotStartDate <- as.Date("06/26/18", format = "%m/%d/%y") # insert the pilot's start date in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+copilotStartDate <- NA # insert the co-pilot's start date in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+completionDate <- NA # copilot insert the date of final report completion (after any necessary rounds of author assistance) in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+```
+
+------
+
+#### Methods summary: 
+
+The authors compared people from different racial backgrounds on their attitudes towards people from different racial groups, including their own. They used implicit measures of relative preference between races. Results suggest that people evaluated their own racial group as the most positive. Across racial groups, people evaluated Whites most positively, followed by Asians, Blacks and Hispanics when evaluating racial groups other than their own.
+
+------
+
+#### Target outcomes: 
+
+> Results
+
+> Sample sizes vary among the tests reported because of
+missing data. For participants of all racial and ethnic
+groups, the order of implicit racial preferences was the
+same (Fig. 1). Whites, Asians, Blacks, and Hispanics exhibited the most positive associations for their own
+racial group. In addition, their implicit evaluations of the
+remaining racial groups always placed White people first,
+followed by Asian, Black, and then Hispanic people, all
+pairwise ts(1467–31,567) > 4.06, all ps < .001, all ds >
+0.06, average d = 0.2, except for the comparison between
+the Black aggregate and Hispanic aggregate variables
+among Asian participants, t(1468) = 0.86, p = .394.
+Participants who identified with racial groups other than
+the four target groups (e.g., American Indians, Pacific
+Islanders) showed the same ordinal pattern, all ts(3291–
+3303) > 4.2, all ps < .001, all ds > 0.08, average d = 0.10.
+
+> The Supplemental Material provides t and d values
+for implicit evaluations (Table S1) 
+
+
+We will reproduce those results by reproducing Table 1 from the paper and Table S1 from the supplementary materials.
+
+------
+
+```{r global_options, include=FALSE}
+# sets up some formatting options for the R Markdown document
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+# Step 1: Load packages and prepare report object
+
+```{r}
+# load packages
+library(tidyverse) # for data munging
+library(knitr) # for kable table formating
+library(haven) # import and export 'SPSS', 'Stata' and 'SAS' Files
+library(readxl) # import excel files
+library(CARPSreports) # custom report functions
+library (lsr)
+```
+
+```{r}
+# Prepare report object. This will be updated automatically by the reproCheck function each time values are compared
+reportObject <- data.frame(dummyRow = TRUE, reportedValue = NA, obtainedValue = NA, valueType = NA, percentageError = NA, comparisonOutcome = NA, eyeballCheck = NA)
+```
+
+# Step 2: Load data
+
+```{r}
+d <- read.csv("data/Study1Data.txt" ,header=T, sep="\t")
+```
+
+# Step 3: Tidy data
+
+```{r}
+d.tidy <- d %>%
+  gather(test,score,-c(1:8))%>%
+  arrange(SessionID)
+```
+
+# Step 4: Run analysis
+
+## Descriptive statistics
+Filtering is done based syntax file shared by the authors. There it says:
+
+> filter_$=((AmericanCitizen=1 OR AmericanResidence=1)  & TooFastPct<.1).
+
+For all descriptive and inferential statistics, we apply the same filter. In addition, rows with NAs for a given measure are filtered out, too.
+
+Reproducing Table 1.
+
+```{r}
+tab1 <- d.tidy%>%
+  filter(TooFastPct < .1, AmericanCitizen == 1 | AmericanResidence == 1, test == "WhiteImplicit" | test == "AsianImplicit" | test == "BlackImplicit" | test == "HispImplicit")%>%
+  na.omit(score)%>%
+  group_by(Race,test)%>%
+  summarise(n = length(unique(SessionID)),
+            M = mean(score),
+            sd = sd(score))%>%
+  gather(type,measure,-c(1:2))%>%
+  mutate(type = paste(test,type,sep="_"))%>%
+  mutate(order = 1:12)%>%
+  select(-test,-order)%>%
+  spread(type,measure)%>%
+  ungroup()%>%
+  mutate(
+    Race = factor(Race, levels = c("White", "Asian","Black","Hispanic","Other"))
+  )%>%
+  arrange(Race)%>%
+  select(1,12, 11, 13,  3,  2,  4,  6,  5,  7,  9,  8, 10)%>%
+  select_all(~sub("Implicit","",.))
+```
+
+Here is Table 1 from the paper:
+
+![Table 1](t1.png)
+
+```{r}
+tab1%>%
+  kable(digits = 2)
+```
+
+Means and SDs all seem to match, the sample sizes, however, differ from the ones reported in the paper. This is somehow confusing as the matching in all the summary statistics suggests that the filtering is done right. The sample sizes also differ if NAs are included or when any or all of the filters are omitted.
+
+```{r}
+# N for Whites
+reportObject <- reproCheck(reportedValue = "31656", obtainedValue =  tab1 %>% filter(Race == "White") %>% pull(White_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "1469", obtainedValue =  tab1 %>% filter(Race == "Asian") %>% pull(White_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "3676", obtainedValue =  tab1 %>% filter(Race == "Black") %>% pull(White_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "4411", obtainedValue =  tab1 %>% filter(Race == "Hispanic") %>% pull(White_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "3307", obtainedValue =  tab1 %>% filter(Race == "Other") %>% pull(White_n), valueType = "n")
+# Means for Whites
+reportObject <- reproCheck(reportedValue = "0.15", obtainedValue =  tab1 %>% filter(Race == "White") %>% pull(White_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "0.06", obtainedValue =  tab1 %>% filter(Race == "Asian") %>% pull(White_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "-0.03", obtainedValue =  tab1 %>% filter(Race == "Black") %>% pull(White_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "0.04", obtainedValue =  tab1 %>% filter(Race == "Hispanic") %>% pull(White_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "0.08", obtainedValue =  tab1 %>% filter(Race == "Other") %>% pull(White_M), valueType = "mean")
+# SD for Whites
+reportObject <- reproCheck(reportedValue = "0.36", obtainedValue =  tab1 %>% filter(Race == "White") %>% pull(White_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.34", obtainedValue =  tab1 %>% filter(Race == "Asian") %>% pull(White_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.34", obtainedValue =  tab1 %>% filter(Race == "Black") %>% pull(White_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.34", obtainedValue =  tab1 %>% filter(Race == "Hispanic") %>% pull(White_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.35", obtainedValue =  tab1 %>% filter(Race == "Other") %>% pull(White_sd), valueType = "sd")
+
+# N for Asians
+reportObject <- reproCheck(reportedValue = "31684", obtainedValue =  tab1 %>% filter(Race == "White") %>% pull(Asian_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "1474", obtainedValue =  tab1 %>% filter(Race == "Asian") %>% pull(Asian_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "3680", obtainedValue =  tab1 %>% filter(Race == "Black") %>% pull(Asian_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "4414", obtainedValue =  tab1 %>% filter(Race == "Hispanic") %>% pull(Asian_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "3311", obtainedValue =  tab1 %>% filter(Race == "Other") %>% pull(Asian_n), valueType = "n")
+# Means for Asians
+reportObject <- reproCheck(reportedValue = "-0.01", obtainedValue =  tab1 %>% filter(Race == "White") %>% pull(Asian_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "0.26", obtainedValue =  tab1 %>% filter(Race == "Asian") %>% pull(Asian_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "-0.08", obtainedValue =  tab1 %>% filter(Race == "Black") %>% pull(Asian_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "-0.04", obtainedValue =  tab1 %>% filter(Race == "Hispanic") %>% pull(Asian_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "0.04", obtainedValue =  tab1 %>% filter(Race == "Other") %>% pull(Asian_M), valueType = "mean")
+# SD for Asians
+reportObject <- reproCheck(reportedValue = "0.30", obtainedValue =  tab1 %>% filter(Race == "White") %>% pull(Asian_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.32", obtainedValue =  tab1 %>% filter(Race == "Asian") %>% pull(Asian_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.31", obtainedValue =  tab1 %>% filter(Race == "Black") %>% pull(Asian_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.31", obtainedValue =  tab1 %>% filter(Race == "Hispanic") %>% pull(Asian_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.32", obtainedValue =  tab1 %>% filter(Race == "Other") %>% pull(Asian_sd), valueType = "sd")
+
+# N for Blacks
+reportObject <- reproCheck(reportedValue = "31674", obtainedValue =  tab1 %>% filter(Race == "White") %>% pull(Black_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "1472", obtainedValue =  tab1 %>% filter(Race == "Asian") %>% pull(Black_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "3677", obtainedValue =  tab1 %>% filter(Race == "Black") %>% pull(Black_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "4413", obtainedValue =  tab1 %>% filter(Race == "Hispanic") %>% pull(Black_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "3317", obtainedValue =  tab1 %>% filter(Race == "Other") %>% pull(Black_n), valueType = "n")
+# Means for Blacks
+reportObject <- reproCheck(reportedValue = "-0.05", obtainedValue =  tab1 %>% filter(Race == "White") %>% pull(Black_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "-0.15", obtainedValue =  tab1 %>% filter(Race == "Asian") %>% pull(Black_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "0.22", obtainedValue =  tab1 %>% filter(Race == "Black") %>% pull(Black_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "-0.10", obtainedValue =  tab1 %>% filter(Race == "Hispanic") %>% pull(Black_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "-0.03", obtainedValue =  tab1 %>% filter(Race == "Other") %>% pull(Black_M), valueType = "mean")
+# SD for Blacks
+reportObject <- reproCheck(reportedValue = "0.33", obtainedValue =  tab1 %>% filter(Race == "White") %>% pull(Black_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.32", obtainedValue =  tab1 %>% filter(Race == "Asian") %>% pull(Black_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.34", obtainedValue =  tab1 %>% filter(Race == "Black") %>% pull(Black_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.34", obtainedValue =  tab1 %>% filter(Race == "Hispanic") %>% pull(Black_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.35", obtainedValue =  tab1 %>% filter(Race == "Other") %>% pull(Black_sd), valueType = "sd")
+
+# N for Hispanics
+reportObject <- reproCheck(reportedValue = "31664", obtainedValue =  tab1 %>% filter(Race == "White") %>% pull(Hisp_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "1472", obtainedValue =  tab1 %>% filter(Race == "Asian") %>% pull(Hisp_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "3676", obtainedValue =  tab1 %>% filter(Race == "Black") %>% pull(Hisp_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "4411", obtainedValue =  tab1 %>% filter(Race == "Hispanic") %>% pull(Hisp_n), valueType = "n")
+reportObject <- reproCheck(reportedValue = "3307", obtainedValue =  tab1 %>% filter(Race == "Other") %>% pull(Hisp_n), valueType = "n")
+# Means for Hispanics
+reportObject <- reproCheck(reportedValue = "-0.09", obtainedValue =  tab1 %>% filter(Race == "White") %>% pull(Hisp_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "-0.16", obtainedValue =  tab1 %>% filter(Race == "Asian") %>% pull(Hisp_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "-0.11", obtainedValue =  tab1 %>% filter(Race == "Black") %>% pull(Hisp_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "0.10", obtainedValue =  tab1 %>% filter(Race == "Hispanic") %>% pull(Hisp_M), valueType = "mean")
+reportObject <- reproCheck(reportedValue = "-0.08", obtainedValue =  tab1 %>% filter(Race == "Other") %>% pull(Hisp_M), valueType = "mean")
+# SD for Hispanics
+reportObject <- reproCheck(reportedValue = "0.29", obtainedValue =  tab1 %>% filter(Race == "White") %>% pull(Hisp_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.29", obtainedValue =  tab1 %>% filter(Race == "Asian") %>% pull(Hisp_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.30", obtainedValue =  tab1 %>% filter(Race == "Black") %>% pull(Hisp_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.32", obtainedValue =  tab1 %>% filter(Race == "Hispanic") %>% pull(Hisp_sd), valueType = "sd")
+reportObject <- reproCheck(reportedValue = "0.30", obtainedValue =  tab1 %>% filter(Race == "Other") %>% pull(Hisp_sd), valueType = "sd")
+```
+
+## Inferential statistics
+
+Reproducing top section of Table S1. We run the t-tests separate for each race in order to put them in the order (ranked by race preference within each race) they appear in the corresponding table. Outcomes are later joined into a table.
+
+```{r}
+# order for whites
+d.tidy%>%
+  filter(Race == "White",test == "WhiteImplicit" | test == "AsianImplicit" | test == "BlackImplicit" | test == "HispImplicit")%>%
+  group_by(test)%>%
+  na.omit()%>%
+  summarize(mean = mean(score))%>%
+  arrange(-mean)
+
+# comparisons
+
+white <- d.tidy%>%
+  filter(Race == "White",TooFastPct < .1, AmericanCitizen == 1 | AmericanResidence == 1,
+       test == "WhiteImplicit" | test == "AsianImplicit" | test == "BlackImplicit" | test == "HispImplicit")%>%
+  group_by(SessionID,Race,test)%>%
+  group_by(Race,test)%>%
+  summarize(score = list(score))%>%
+  spread(test,score)%>%
+  mutate(t_1_2 = t.test(unlist(WhiteImplicit),unlist(AsianImplicit), paired = T)$statistic,
+         d_1_2 = cohensD(unlist(WhiteImplicit),unlist(AsianImplicit), method = "paired"),
+         t_2_3 = t.test(unlist(AsianImplicit),unlist(BlackImplicit), paired = T)$statistic,
+         d_2_3 = cohensD(unlist(AsianImplicit),unlist(BlackImplicit), method = "paired"),
+         t_3_4 = t.test(unlist(BlackImplicit),unlist(HispImplicit), paired = T)$statistic,
+         d_3_4 = cohensD(unlist(BlackImplicit),unlist(HispImplicit), method = "paired"))%>%
+  select(-2,-3,-4,-5)
+```
+
+```{r}
+# order for asians
+d.tidy%>%
+  filter(Race == "Asian",test == "WhiteImplicit" | test == "AsianImplicit" | test == "BlackImplicit" | test == "HispImplicit")%>%
+  group_by(test)%>%
+  na.omit()%>%
+  summarize(mean = mean(score))%>%
+  arrange(-mean)
+
+#comparisons
+asian <- d.tidy%>%
+  filter(Race == "Asian",TooFastPct < .1, AmericanCitizen == 1 | AmericanResidence == 1,
+       test == "WhiteImplicit" | test == "AsianImplicit" | test == "BlackImplicit" | test == "HispImplicit")%>%
+  group_by(SessionID,Race,test)%>%
+  group_by(Race,test)%>%
+  summarize(score = list(score))%>%
+  spread(test,score)%>%
+  mutate(t_1_2 = t.test(unlist(AsianImplicit),unlist(WhiteImplicit), paired = T)$statistic,
+         d_1_2 = cohensD(unlist(AsianImplicit),unlist(WhiteImplicit), method = "paired"),
+         t_2_3 = t.test(unlist(WhiteImplicit),unlist(BlackImplicit), paired = T)$statistic,
+         d_2_3 = cohensD(unlist(WhiteImplicit),unlist(BlackImplicit), method = "paired"),
+         t_3_4 = t.test(unlist(BlackImplicit),unlist(HispImplicit), paired = T)$statistic,
+         d_3_4 = cohensD(unlist(BlackImplicit),unlist(HispImplicit), method = "paired"))%>%
+  select(-2,-3,-4,-5)
+```
+
+```{r}
+# order for blacks
+d.tidy%>%
+  filter(Race == "Black",test == "WhiteImplicit" | test == "AsianImplicit" | test == "BlackImplicit" | test == "HispImplicit")%>%
+  group_by(test)%>%
+  na.omit()%>%
+  summarize(mean = mean(score))%>%
+  arrange(-mean)
+
+#comparisons
+black <- d.tidy%>%
+  filter(Race == "Black",TooFastPct < .1, AmericanCitizen == 1 | AmericanResidence == 1,
+       test == "WhiteImplicit" | test == "AsianImplicit" | test == "BlackImplicit" | test == "HispImplicit")%>%
+  group_by(SessionID,Race,test)%>%
+  group_by(Race,test)%>%
+  summarize(score = list(score))%>%
+  spread(test,score)%>%
+  mutate(t_1_2 = t.test(unlist(BlackImplicit),unlist(WhiteImplicit), paired = T)$statistic,
+         d_1_2 = cohensD(unlist(BlackImplicit),unlist(WhiteImplicit), method = "paired"),
+         t_2_3 = t.test(unlist(WhiteImplicit),unlist(AsianImplicit), paired = T)$statistic,
+         d_2_3 = cohensD(unlist(WhiteImplicit),unlist(AsianImplicit), method = "paired"),
+         t_3_4 = t.test(unlist(AsianImplicit),unlist(HispImplicit), paired = T)$statistic,
+         d_3_4 = cohensD(unlist(AsianImplicit),unlist(HispImplicit), method = "paired"))%>%
+  select(-2,-3,-4,-5)
+```
+
+```{r}
+# order for hispanics
+d.tidy%>%
+  filter(Race == "Hispanic",test == "WhiteImplicit" | test == "AsianImplicit" | test == "BlackImplicit" | test == "HispImplicit")%>%
+  group_by(test)%>%
+  na.omit()%>%
+  summarize(mean = mean(score))%>%
+  arrange(-mean)
+
+#comparisons
+hispanic <- d.tidy%>%
+  filter(Race == "Hispanic",TooFastPct < .1, AmericanCitizen == 1 | AmericanResidence == 1,
+       test == "WhiteImplicit" | test == "AsianImplicit" | test == "BlackImplicit" | test == "HispImplicit")%>%
+  group_by(SessionID,Race,test)%>%
+  group_by(Race,test)%>%
+  summarize(score = list(score))%>%
+  spread(test,score)%>%
+  mutate(t_1_2 = t.test(unlist(HispImplicit),unlist(WhiteImplicit), paired = T)$statistic,
+         d_1_2 = cohensD(unlist(HispImplicit),unlist(WhiteImplicit), method = "paired"),
+         t_2_3 = t.test(unlist(WhiteImplicit),unlist(AsianImplicit), paired = T)$statistic,
+         d_2_3 = cohensD(unlist(WhiteImplicit),unlist(AsianImplicit), method = "paired"),
+         t_3_4 = t.test(unlist(AsianImplicit),unlist(BlackImplicit), paired = T)$statistic,
+         d_3_4 = cohensD(unlist(AsianImplicit),unlist(BlackImplicit), method = "paired"))%>%
+  select(-2,-3,-4,-5)
+```
+
+```{r}
+# order for others
+d.tidy%>%
+  filter(Race == "Other",test == "WhiteImplicit" | test == "AsianImplicit" | test == "BlackImplicit" | test == "HispImplicit")%>%
+  group_by(test)%>%
+  na.omit()%>%
+  summarize(mean = mean(score))%>%
+  arrange(-mean)
+
+#comparisons
+other <- d.tidy%>%
+  filter(Race == "Other",TooFastPct < .1, AmericanCitizen == 1 | AmericanResidence == 1,
+       test == "WhiteImplicit" | test == "AsianImplicit" | test == "BlackImplicit" | test == "HispImplicit")%>%
+  group_by(SessionID,Race,test)%>%
+  group_by(Race,test)%>%
+  summarize(score = list(score))%>%
+  spread(test,score)%>%
+  mutate(t_1_2 = t.test(unlist(WhiteImplicit),unlist(AsianImplicit), paired = T)$statistic,
+         d_1_2 = cohensD(unlist(WhiteImplicit),unlist(AsianImplicit), method = "paired"),
+         t_2_3 = t.test(unlist(AsianImplicit),unlist(BlackImplicit), paired = T)$statistic,
+         d_2_3 = cohensD(unlist(AsianImplicit),unlist(BlackImplicit), method = "paired"),
+         t_3_4 = t.test(unlist(BlackImplicit),unlist(HispImplicit), paired = T)$statistic,
+         d_3_4 = cohensD(unlist(BlackImplicit),unlist(HispImplicit), method = "paired"))%>%
+  select(-2,-3,-4,-5)
+```
+
+
+
+```{r}
+# joining data files
+
+tabS1 <- bind_rows(
+  white,
+  asian,
+  black,
+  hispanic,
+  other
+)
+```
+
+Here is Table S1 from the supplementary material:
+
+![Table S1](tS1.png)
+
+
+```{r}
+tabS1%>%
+  kable(digits = 2)
+```
+
+There is one "major error". For Other Races the reported effect size of the comparison Race 1 vs. Race 2 is 0.8, the obtained one is 0.7.
+
+```{r}
+# t for Whites
+reportObject <- reproCheck(reportedValue = "55.84", obtainedValue =  white %>% pull(t_1_2), valueType = "t")
+reportObject <- reproCheck(reportedValue = "11.02", obtainedValue =  white %>% pull(t_2_3), valueType = "t")
+reportObject <- reproCheck(reportedValue = "16.21", obtainedValue =  white %>% pull(t_3_4), valueType = "t")
+# d for Whites
+reportObject <- reproCheck(reportedValue = ".31", obtainedValue =  white %>% pull(d_1_2), valueType = "d")
+reportObject <- reproCheck(reportedValue = ".06", obtainedValue =  white %>% pull(d_2_3), valueType = "d")
+reportObject <- reproCheck(reportedValue = ".09", obtainedValue =  white %>% pull(d_3_4), valueType = "d")
+
+# t for Asians
+reportObject <- reproCheck(reportedValue = "14.91", obtainedValue =  asian %>% pull(t_1_2), valueType = "t")
+reportObject <- reproCheck(reportedValue = "13.87", obtainedValue =  asian %>% pull(t_2_3), valueType = "t")
+reportObject <- reproCheck(reportedValue = ".86", obtainedValue =  asian %>% pull(t_3_4), valueType = "t")
+# d for Asians
+reportObject <- reproCheck(reportedValue = ".39", obtainedValue =  asian %>% pull(d_1_2), valueType = "d")
+reportObject <- reproCheck(reportedValue = ".36", obtainedValue =  asian %>% pull(d_2_3), valueType = "d")
+reportObject <- reproCheck(reportedValue = ".02", obtainedValue =  asian %>% pull(d_3_4), valueType = "d")
+
+# t for Blacks
+reportObject <- reproCheck(reportedValue = "27.20", obtainedValue =  black %>% pull(t_1_2), valueType = "t")
+reportObject <- reproCheck(reportedValue = "4.82", obtainedValue =  black %>% pull(t_2_3), valueType = "t")
+reportObject <- reproCheck(reportedValue = "4.06", obtainedValue =  black %>% pull(t_3_4), valueType = "t")
+# d for Blacks
+reportObject <- reproCheck(reportedValue = ".45", obtainedValue =  black %>% pull(d_1_2), valueType = "d")
+reportObject <- reproCheck(reportedValue = ".08", obtainedValue =  black %>% pull(d_2_3), valueType = "d")
+reportObject <- reproCheck(reportedValue = ".07", obtainedValue =  black %>% pull(d_3_4), valueType = "d")
+
+# t for Hispanics
+reportObject <- reproCheck(reportedValue = "6.60", obtainedValue =  hispanic %>% pull(t_1_2), valueType = "t")
+reportObject <- reproCheck(reportedValue = "11.10", obtainedValue =  hispanic %>% pull(t_2_3), valueType = "t")
+reportObject <- reproCheck(reportedValue = "6.87", obtainedValue =  hispanic %>% pull(t_3_4), valueType = "t")
+# d for Hispanics
+reportObject <- reproCheck(reportedValue = ".10", obtainedValue =  hispanic %>% pull(d_1_2), valueType = "d")
+reportObject <- reproCheck(reportedValue = ".17", obtainedValue =  hispanic %>% pull(d_2_3), valueType = "d")
+reportObject <- reproCheck(reportedValue = ".10", obtainedValue =  hispanic %>% pull(d_3_4), valueType = "d")
+
+# t for Others
+reportObject <- reproCheck(reportedValue = "4.24", obtainedValue =  other %>% pull(t_1_2), valueType = "t")
+reportObject <- reproCheck(reportedValue = "7.43", obtainedValue =  other %>% pull(t_2_3), valueType = "t")
+reportObject <- reproCheck(reportedValue = "5.59", obtainedValue =  other %>% pull(t_3_4), valueType = "t")
+# d for Others
+reportObject <- reproCheck(reportedValue = ".08", obtainedValue =  other %>% pull(d_1_2), valueType = "d")
+reportObject <- reproCheck(reportedValue = ".13", obtainedValue =  other %>% pull(d_2_3), valueType = "d")
+reportObject <- reproCheck(reportedValue = ".10", obtainedValue =  other %>% pull(d_3_4), valueType = "d")
+
+```
+
+# Step 5: Conclusion
+
+The sample sizes reported in the paper differed from the ones obtained. Given the large numbers, the deviations were only minor. All, except one, inferential and summary statistics could be successfully reproduced. The deviation was in the second decimal and might come from a rounding error. In sum, given the large data set and the large number of compared values, this check was rather successful.
+
+```{r}
+Author_Assistance = FALSE # was author assistance provided? (if so, enter TRUE)
+
+Insufficient_Information_Errors <- 0 # how many discrete insufficient information issues did you encounter?
+
+# Assess the causal locus (discrete reproducibility issues) of any reproducibility errors. Note that there doesn't necessarily have to be a one-to-one correspondance between discrete reproducibility issues and reproducibility errors. For example, it could be that the original article neglects to mention that a Greenhouse-Geisser correct was applied to ANOVA outcomes. This might result in multiple reproducibility errors, but there is a single causal locus (discrete reproducibility issue).
+
+locus_typo <- NA # how many discrete issues did you encounter that related to typographical errors?
+locus_specification <- 20 # how many discrete issues did you encounter that related to incomplete, incorrect, or unclear specification of the original analyses?
+locus_analysis <- 4 # how many discrete issues did you encounter that related to errors in the authors' original analyses?
+locus_data <- NA # how many discrete issues did you encounter that related to errors in the data files shared by the authors?
+locus_unidentified <- NA # how many discrete issues were there for which you could not identify the cause
+
+Affects_Conclusion <- FALSE # Do any reproducibility issues encounter appear to affect the conclusions made in the original article? TRUE, FALSE, or NA. This is a subjective judgement, but you should taking into account multiple factors, such as the presence/absence of decision errors, the number of target outcomes that could not be reproduced, the type of outcomes that could or could not be reproduced, the difference in magnitude of effect sizes, and the predictions of the specific hypothesis under scrutiny.
+```
+
+
+
+```{r}
+reportObject <- reportObject %>%
+  filter(dummyRow == FALSE) %>% # remove the dummy row
+  select(-dummyRow) %>% # remove dummy row designation
+  mutate(articleID = articleID) %>% # add variables to report 
+  select(articleID, everything()) # make articleID first column
+
+# decide on final outcome
+if(any(reportObject$comparisonOutcome != "MATCH") | Insufficient_Information_Errors > 0){
+  finalOutcome <- "Failure without author assistance"
+  if(Author_Assistance == T){
+    finalOutcome <- "Failure despite author assistance"
+  }
+}else{
+  finalOutcome <- "Success without author assistance"
+  if(Author_Assistance == T){
+    finalOutcome <- "Success with author assistance"
+  }
+}
+
+# collate report extra details
+reportExtras <- data.frame(articleID, pilotNames, copilotNames, pilotTTC, copilotTTC, pilotStartDate, copilotStartDate, completionDate, Author_Assistance, finalOutcome, Insufficient_Information_Errors, locus_typo, locus_specification, locus_analysis, locus_data, locus_unidentified)
+
+# save report objects
+if(reportType == "pilot"){
+  write_csv(reportObject, "pilotReportDetailed.csv")
+  write_csv(reportExtras, "pilotReportExtras.csv")
+}
+
+if(reportType == "final"){
+  write_csv(reportObject, "finalReportDetailed.csv")
+  write_csv(reportExtras, "finalReportExtras.csv")
+}
+```
+
+# Session information
+
+[This function will output information about the package versions used in this report:]
+
+```{r session_info, include=TRUE, echo=TRUE, results='markup'}
+devtools::session_info()
+```

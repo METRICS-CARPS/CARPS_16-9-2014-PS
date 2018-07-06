@@ -1,4 +1,4 @@
-﻿
+ 
 ** Re-creating analyses from Axt, Ebersole and Nosek (2014): Study 1
 
 ** Selecting only American citizens or residents with less than 10% of responses being too fast
