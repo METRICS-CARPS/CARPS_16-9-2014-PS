@@ -486,8 +486,6 @@ if(reportType == "final"){
 
 # Session information
 
-[This function will output information about the package versions used in this report:]
-
 ```{r session_info, include=TRUE, echo=TRUE, results='markup'}
 devtools::session_info()
 ```
