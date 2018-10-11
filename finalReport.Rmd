@@ -6,22 +6,18 @@ output:
     toc_float: true
 ---
 
-[PILOT/COPILOT - TEXT IN SQUARE BRACKETS IS HERE FOR GUIDANCE. COPILOT PLEASE DELETE BEFORE KNITTING THE FINAL REPORT]
-
 # Report Details
-
-[PILOT/COPILOT ENTER RELEVANT REPORT DETAILS HERE]
 
 ```{r}
 articleID <- "16-9-2014_PS" # insert the article ID code here e.g., "10-3-2015_PS"
-reportType <- 'pilot' # specify whether this is the 'pilot' report or 'final' report
+reportType <- 'final' # specify whether this is the 'pilot' report or 'final' report
 pilotNames <- "Manuel Bohn" # insert the pilot's name here e.g., "Tom Hardwicke".  If there are multiple cpilots enter both names in a character string e.g., "Tom Hardwicke, Bob Dylan"
-copilotNames <- NA # # insert the co-pilot's name here e.g., "Michael Frank". If there are multiple co-pilots enter both names in a character string e.g., "Tom Hardwicke, Bob Dylan"
+copilotNames <- "Tom Hardwicke" # # insert the co-pilot's name here e.g., "Michael Frank". If there are multiple co-pilots enter both names in a character string e.g., "Tom Hardwicke, Bob Dylan"
 pilotTTC <- 360 # insert the pilot's estimated time to complete (in minutes, fine to approximate) e.g., 120
-copilotTTC <- NA # insert the co-pilot's estimated time to complete (in minutes, fine to approximate) e.g., 120
+copilotTTC <- 60 # insert the co-pilot's estimated time to complete (in minutes, fine to approximate) e.g., 120
 pilotStartDate <- as.Date("06/26/18", format = "%m/%d/%y") # insert the pilot's start date in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
-copilotStartDate <- NA # insert the co-pilot's start date in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
-completionDate <- NA # copilot insert the date of final report completion (after any necessary rounds of author assistance) in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+copilotStartDate <- as.Date("10/11/18", format = "%m/%d/%y") # insert the co-pilot's start date in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+completionDate <- as.Date("10/11/18", format = "%m/%d/%y") # copilot insert the date of final report completion (after any necessary rounds of author assistance) in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
 ```
 
 ------
@@ -99,6 +95,7 @@ d.tidy <- d %>%
 # Step 4: Run analysis
 
 ## Descriptive statistics
+
 Filtering is done based syntax file shared by the authors. There it says:
 
 > filter_$=((AmericanCitizen=1 OR AmericanResidence=1)  & TooFastPct<.1).
@@ -377,7 +374,7 @@ tabS1%>%
   kable(digits = 2)
 ```
 
-There is one "major error". For Other Races the reported effect size of the comparison Race 1 vs. Race 2 is 0.8, the obtained one is 0.7.
+There is one "major error". For Other Races the reported effect size of the comparison Race 1 vs. Race 2 is 0.08, the obtained one is 0.07.
 
 ```{r}
 # t for Whites
@@ -421,7 +418,7 @@ reportObject <- reproCheck(reportedValue = "4.24", obtainedValue =  other %>% pu
 reportObject <- reproCheck(reportedValue = "7.43", obtainedValue =  other %>% pull(t_2_3), valueType = "t")
 reportObject <- reproCheck(reportedValue = "5.59", obtainedValue =  other %>% pull(t_3_4), valueType = "t")
 # d for Others
-reportObject <- reproCheck(reportedValue = ".08", obtainedValue =  other %>% pull(d_1_2), valueType = "d")
+reportObject <- reproCheck(reportedValue = ".08", obtainedValue =  other %>% pull(d_1_2), valueType = "d", round = FALSE)
 reportObject <- reproCheck(reportedValue = ".13", obtainedValue =  other %>% pull(d_2_3), valueType = "d")
 reportObject <- reproCheck(reportedValue = ".10", obtainedValue =  other %>% pull(d_3_4), valueType = "d")
 
@@ -429,7 +426,7 @@ reportObject <- reproCheck(reportedValue = ".10", obtainedValue =  other %>% pul
 
 # Step 5: Conclusion
 
-The sample sizes reported in the paper differed from the ones obtained. Given the large numbers, the deviations were only minor. All, except one, inferential and summary statistics could be successfully reproduced. The deviation was in the second decimal and might come from a rounding error. In sum, given the large data set and the large number of compared values, this check was rather successful.
+The sample sizes reported in the paper differed from the ones obtained but given the large numbers, the deviations were only minor errors. Overall, all target outcomes could be successfully reproduced.
 
 ```{r}
 Author_Assistance = FALSE # was author assistance provided? (if so, enter TRUE)
@@ -439,15 +436,13 @@ Insufficient_Information_Errors <- 0 # how many discrete insufficient informatio
 # Assess the causal locus (discrete reproducibility issues) of any reproducibility errors. Note that there doesn't necessarily have to be a one-to-one correspondance between discrete reproducibility issues and reproducibility errors. For example, it could be that the original article neglects to mention that a Greenhouse-Geisser correct was applied to ANOVA outcomes. This might result in multiple reproducibility errors, but there is a single causal locus (discrete reproducibility issue).
 
 locus_typo <- NA # how many discrete issues did you encounter that related to typographical errors?
-locus_specification <- 20 # how many discrete issues did you encounter that related to incomplete, incorrect, or unclear specification of the original analyses?
-locus_analysis <- 4 # how many discrete issues did you encounter that related to errors in the authors' original analyses?
+locus_specification <- NA # how many discrete issues did you encounter that related to incomplete, incorrect, or unclear specification of the original analyses?
+locus_analysis <- NA # how many discrete issues did you encounter that related to errors in the authors' original analyses?
 locus_data <- NA # how many discrete issues did you encounter that related to errors in the data files shared by the authors?
 locus_unidentified <- NA # how many discrete issues were there for which you could not identify the cause
 
 Affects_Conclusion <- FALSE # Do any reproducibility issues encounter appear to affect the conclusions made in the original article? TRUE, FALSE, or NA. This is a subjective judgement, but you should taking into account multiple factors, such as the presence/absence of decision errors, the number of target outcomes that could not be reproduced, the type of outcomes that could or could not be reproduced, the difference in magnitude of effect sizes, and the predictions of the specific hypothesis under scrutiny.
 ```
-
-
 
 ```{r}
 reportObject <- reportObject %>%

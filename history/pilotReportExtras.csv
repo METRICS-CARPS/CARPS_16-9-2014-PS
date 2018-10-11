@@ -1,0 +1,2 @@
+articleID,pilotNames,copilotNames,pilotTTC,copilotTTC,pilotStartDate,copilotStartDate,completionDate,Author_Assistance,finalOutcome,Insufficient_Information_Errors,locus_typo,locus_specification,locus_analysis,locus_data,locus_unidentified
+16-9-2014_PS,Manuel Bohn,NA,360,NA,2018-06-26,NA,NA,FALSE,Failure without author assistance,0,NA,20,4,NA,NA

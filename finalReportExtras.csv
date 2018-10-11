@@ -1,0 +1,2 @@
+articleID,pilotNames,copilotNames,pilotTTC,copilotTTC,pilotStartDate,copilotStartDate,completionDate,Author_Assistance,finalOutcome,Insufficient_Information_Errors,locus_typo,locus_specification,locus_analysis,locus_data,locus_unidentified
+16-9-2014_PS,Manuel Bohn,Tom Hardwicke,360,60,2018-06-26,2018-10-11,2018-10-11,FALSE,Failure without author assistance,0,NA,NA,NA,NA,NA
