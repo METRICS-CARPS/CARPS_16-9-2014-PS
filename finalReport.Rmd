@@ -35,8 +35,7 @@ The authors compared people from different racial backgrounds on their attitudes
 > Sample sizes vary among the tests reported because of
 missing data. For participants of all racial and ethnic
 groups, the order of implicit racial preferences was the
-same (Fig. 1). Whites, Asians, Blacks, and Hispanics exhibited the most positive associations for their own
-racial group. In addition, their implicit evaluations of the
+same (Fig. 1). Whites, Asians, Blacks, and Hispanics exhibited the most positive associations for their own racial group. In addition, their implicit evaluations of the
 remaining racial groups always placed White people first,
 followed by Asian, Black, and then Hispanic people, all
 pairwise ts(1467–31,567) > 4.06, all ps < .001, all ds >
