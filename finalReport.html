@@ -1536,12 +1536,11 @@ completionDate &lt;- as.Date(&quot;10/11/18&quot;, format = &quot;%m/%d/%y&quot;
 <p>Results</p>
 </blockquote>
 <blockquote>
-<p>Sample sizes vary among the tests reported because of missing data. For participants of all racial and ethnic groups, the order of implicit racial preferences was the same (Fig. 1). Whites, Asians, Blacks, and Hispanics exhibited the most positive associations for their own racial group. In addition, their implicit evaluations of the remaining racial groups always placed White people first, followed by Asian, Black, and then Hispanic people, all pairwise ts(1467–31,567) &gt; 4.06, all ps &lt; .001, all ds &gt; 0.06, average d = 0.2, except for the comparison between the Black aggregate and Hispanic aggregate variables among Asian participants, t(1468) = 0.86, p = .394. Participants who identified with racial groups other than the four target groups (e.g., American Indians, Pacific Islanders) showed the same ordinal pattern, all ts(3291– 3303) &gt; 4.2, all ps &lt; .001, all ds &gt; 0.08, average d = 0.10.</p>
+<p>Sample sizes vary among the tests reported because of missing data. For participants of all racial and ethnic groups, the order of implicit racial preferences was the same (Fig. 1). Whites, Asians, Blacks, and Hispanics exhibited the most positive associations for their own racial group. In addition, their implicit evaluations of the remaining racial groups always placed White people first, followed by Asian, Black, and then Hispanic people, all pairwise ts(1467–31,567) &gt; 4.06, all ps &lt; .001, all ds &gt; 0.06, average d = 0.2, except for the comparison between the Black aggregate and Hispanic aggregate variables among Asian participants, t(1468) = 0.86, p = .394. Participants who identified with racial groups other than the four target groups (e.g., American Indians, Pacific Islanders) showed the same ordinal pattern, all ts(3291–3303) &gt; 4.2, all ps &lt; .001, all ds &gt; 0.08, average d = 0.10.</p>
 </blockquote>
 <blockquote>
 <p>The Supplemental Material provides t and d values for implicit evaluations (Table S1)</p>
 </blockquote>
-<p>We will reproduce those results by reproducing Table 1 from the paper and Table S1 from the supplementary materials.</p>
 <hr />
 </div>
 </div>
@@ -2058,7 +2057,6 @@ tabS1 &lt;- bind_rows(
 </tr>
 </tbody>
 </table>
-<p>There is one “major error”. For Other Races the reported effect size of the comparison Race 1 vs. Race 2 is 0.08, the obtained one is 0.07.</p>
 <pre class="r"><code># t for Whites
 reportObject &lt;- reproCheck(reportedValue = &quot;55.84&quot;, obtainedValue =  white %&gt;% pull(t_1_2), valueType = &quot;t&quot;)</code></pre>
 <pre><code>## [1] &quot;MATCH for t. The reported value (55.84) and the obtained value (55.84) differed by 0%. Note that the obtained value was rounded to 2 decimal places to match the reported value.&quot;</code></pre>
@@ -2200,7 +2198,7 @@ if(reportType == &quot;final&quot;){
 ##  collate  en_US.UTF-8                 
 ##  ctype    en_US.UTF-8                 
 ##  tz       Europe/London               
-##  date     2020-05-06                  
+##  date     2020-05-12                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package      * version date       lib
