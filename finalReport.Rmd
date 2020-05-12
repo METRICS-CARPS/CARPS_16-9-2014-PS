@@ -35,23 +35,10 @@ The authors compared people from different racial backgrounds on their attitudes
 > Sample sizes vary among the tests reported because of
 missing data. For participants of all racial and ethnic
 groups, the order of implicit racial preferences was the
-same (Fig. 1). Whites, Asians, Blacks, and Hispanics exhibited the most positive associations for their own racial group. In addition, their implicit evaluations of the
-remaining racial groups always placed White people first,
-followed by Asian, Black, and then Hispanic people, all
-pairwise ts(1467–31,567) > 4.06, all ps < .001, all ds >
-0.06, average d = 0.2, except for the comparison between
-the Black aggregate and Hispanic aggregate variables
-among Asian participants, t(1468) = 0.86, p = .394.
-Participants who identified with racial groups other than
-the four target groups (e.g., American Indians, Pacific
-Islanders) showed the same ordinal pattern, all ts(3291–
-3303) > 4.2, all ps < .001, all ds > 0.08, average d = 0.10.
+same (Fig. 1). Whites, Asians, Blacks, and Hispanics exhibited the most positive associations for their own racial group. In addition, their implicit evaluations of the remaining racial groups always placed White people first, followed by Asian, Black, and then Hispanic people, all pairwise ts(1467–31,567) > 4.06, all ps < .001, all ds > 0.06, average d = 0.2, except for the comparison between the Black aggregate and Hispanic aggregate variables among Asian participants, t(1468) = 0.86, p = .394. Participants who identified with racial groups other than the four target groups (e.g., American Indians, Pacific Islanders) showed the same ordinal pattern, all ts(3291–3303) > 4.2, all ps < .001, all ds > 0.08, average d = 0.10.
 
 > The Supplemental Material provides t and d values
 for implicit evaluations (Table S1) 
-
-
-We will reproduce those results by reproducing Table 1 from the paper and Table S1 from the supplementary materials.
 
 ------
 
@@ -349,8 +336,6 @@ other <- d.tidy%>%
   select(-2,-3,-4,-5)
 ```
 
-
-
 ```{r}
 # joining data files
 
@@ -372,8 +357,6 @@ Here is Table S1 from the supplementary material:
 tabS1%>%
   kable(digits = 2)
 ```
-
-There is one "major error". For Other Races the reported effect size of the comparison Race 1 vs. Race 2 is 0.08, the obtained one is 0.07.
 
 ```{r}
 # t for Whites
